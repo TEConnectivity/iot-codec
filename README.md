@@ -4,6 +4,10 @@ This NPM module is the TE Connectivity encoding library allowing an user to gene
 
 The license is MIT, this piece of sotware is hence provided "as-is" without any warranty.
 
+## Installation
+
+Inside your module, run ```npm install @te-connectivity/iot-codec```. 
+
 ## Usage
 
 
