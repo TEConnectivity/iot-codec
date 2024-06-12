@@ -1,27 +1,25 @@
-
-
-/** Converti un float (type number) en sa representation hexa sur 32 bits
- *  Ex : 10.5 -> "41280000"
+/** Converts a float (number type) to its 32-bit hex representation
+ *  Ex: 10.5 -> "41280000"
  */
 export function floatToHexString(floatNumber: number) {
-    // Créer un tampon pour stocker les données binaires du flottant
+    // Create a buffer to store the binary data of the float
     const buffer = new ArrayBuffer(4);
     const intView = new Uint32Array(buffer);
     const floatView = new Float32Array(buffer);
 
-    // Assigner la valeur du flottant
+    // Assign the float value
     floatView[0] = floatNumber;
 
-    // Convertir en hexadécimal
+    // Convert to hexadecimal
     const hexString = intView[0].toString(16);
 
-    // Ajouter le préfixe 0x
+    // Add the 0x prefix
     return hexString;
 }
 
-/** Rajoute des 0 si necessaire pour fit dans un octet 
+/** Adds leading zeros if necessary to fit into a byte 
  * 
- *  Exemple : 
+ *  Example: 
  * 
  * input= "C", size=2 -> "0C"
  * 
@@ -42,18 +40,18 @@ export function toHex(byte: number) {
     return ('0' + byte.toString(16).toUpperCase()).slice(-2);
 }
 
-/** Converti un uint8array en string hexa
+/** Converts a uint8array to a hex string
  *  
  * [0x0A,0x02] -> "0A02"
  * @param uint8Array 
  * @returns string
  */
-export function displayUint8ArrayAsHex(uint8Array: Uint8Array, space = " ") {
+export function displayUint8ArrayAsHex(uint8Array: Uint8Array, space = " "): string {
     let hexString = '';
     for (let i = 0; i < uint8Array.length; i++) {
         hexString += toHex(uint8Array[i]);
         if (i < uint8Array.length - 1) {
-            hexString += space; // Ajoute un espace entre chaque octet
+            hexString += space; // Adds a space between each byte
         }
     }
     return hexString;
@@ -62,9 +60,9 @@ export function displayUint8ArrayAsHex(uint8Array: Uint8Array, space = " ") {
 
 /** For a given byte, insert a value at the offset
  *  
- * Par exemple inserer a=3 dans un octet 0x00 a l'offset 1 donnerait :
+ * For example, inserting a=3 in a byte 0x00 at offset 1 would give:
  * 0b00000110
- * Puisque 3 est "11 "en binaire
+ * Since 3 is "11" in binary
  * 
  * @param byte 
  * @param value 
@@ -72,61 +70,61 @@ export function displayUint8ArrayAsHex(uint8Array: Uint8Array, space = " ") {
  * @returns 
  */
 export function insertValueInByte(byte: number, value: number, offset: number) {
-    // Assurez-vous que le byte est un entier compris entre 0 et 255
+    // Ensure the byte is an integer between 0 and 255
     if (byte < 0 || byte > 255) {
-        throw new Error("Le byte doit être un entier compris entre 0 et 255");
+        throw new Error("The byte must be an integer between 0 and 255");
     }
 
-    // Assurez-vous que la valeur est un entier compris entre 0 et 255
+    // Ensure the value is an integer between 0 and 255
     if (value < 0 || value > 255) {
-        throw new Error("La valeur doit être un entier compris entre 0 et 255");
+        throw new Error("The value must be an integer between 0 and 255");
     }
 
-    // Assurez-vous que l'offset est un entier compris entre 0 et 7
+    // Ensure the offset is an integer between 0 and 7
     if (offset < 0 || offset > 7) {
-        throw new Error("L'offset doit être un entier compris entre 0 et 7");
+        throw new Error("The offset must be an integer between 0 and 7");
     }
 
-    // Créez un masque avec un seul bit à l'offset spécifié
+    // Create a mask with a single bit at the specified offset
     let mask = 1 << offset;
 
-    // Effacez le bit à l'offset spécifié dans le byte
+    // Clear the bit at the specified offset in the byte
     byte &= ~mask;
 
-    // Insérer la valeur dans le byte en utilisant l'opérateur OU bit à bit
+    // Insert the value into the byte using the bitwise OR operator
     byte |= (value << offset);
 
     return byte;
 }
 
 
-/** Prends une chaine "AABBCC" et renvoi le tableau de bytes associé : [0xAA,0xBB,0xCC]
+/** Takes a string "AABBCC" and returns the associated byte array: [0xAA,0xBB,0xCC]
  * 
- * L'input doit etre paire (pas de demi octet)
+ * The input must be even (no half byte)
  * 
  * @param hexString 
  * @returns 
  */
 export function hexStringToUint8Array(hexString: string) {
-    // Vérifier si la chaîne hexadécimale a une longueur valide
+    // Check if the hex string has a valid length
     if (hexString.length % 2 !== 0) {
-        throw new Error("La chaîne hexadécimale doit avoir une longueur paire");
+        throw new Error("The hex string must have an even length");
     }
 
-    // Convertir la chaîne hexadécimale en tableau d'octets
+    // Convert the hex string to a byte array
     let byteArray = [];
     for (let i = 0; i < hexString.length; i += 2) {
         let byte = parseInt(hexString.substr(i, 2), 16);
         byteArray.push(byte);
     }
 
-    // Créer un Uint8Array à partir du tableau d'octets
+    // Create a Uint8Array from the byte array
     let uint8Array = new Uint8Array(byteArray);
 
     return uint8Array;
 }
 
-/** Converti un nombre en son tableau d'octet
+/** Converts a number to its byte array
  * 
  * size 2, number 256 -> [0x01, 0xFF]
  * 
@@ -135,18 +133,18 @@ export function hexStringToUint8Array(hexString: string) {
  * @returns bytearray
  */
 export function numberToByteArray(number: any, size: number) {
-    // Déterminer le nombre de bytes nécessaires
+    // Determine the number of bytes needed
     const byteCount = Math.ceil(Math.log2(number + 1) / 8);
 
-    // Créer un tableau pour stocker les bytes avec la taille fournie
+    // Create an array to store the bytes with the provided size
     const byteArray = new Array(size).fill(0);
 
-    // Vérifier si la taille fournie est suffisante pour contenir le nombre
+    // Check if the provided size is sufficient to hold the number
     if (size < byteCount) {
         size = byteCount;
     }
 
-    // Extraire chaque byte
+    // Extract each byte
     for (let i = 0; i < byteCount; i++) {
         const byte = (number >> (8 * (byteCount - i - 1))) & 0xFF;
         byteArray[size - byteCount + i] = byte;
@@ -155,17 +153,29 @@ export function numberToByteArray(number: any, size: number) {
     return byteArray;
 }
 
-export function base64ToHex(base64String: string) {
-    // Convertir la chaîne Base64 en chaîne binaire
+/** Convert a Base64 encoded string to its representation in hex string "AA BB CC"
+ */
+export function base64ToHex(base64String: string): string {
+    // Convert the Base64 string to a binary string
     let binaryString = atob(base64String);
-    // Convertir la chaîne binaire en tableau d'octets
+    // Convert the binary string to a byte array
     let byteArray = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
         byteArray[i] = binaryString.charCodeAt(i);
     }
-    // Convertir le tableau d'octets en chaîne hexadécimale
+    // Convert the byte array to a hex string
     let hexString = Array.from(byteArray, byte => {
         return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');
     return hexString;
+}
+
+/**
+ *  Encode a uint8array into base64 
+ * 
+ * [0x01, 0x02] -> "AQI="
+ */
+export function uint8ArrayToBase64(uint8Array: Uint8Array): string {
+    const binaryString = new TextDecoder('latin1').decode(uint8Array);
+    return btoa(binaryString);
 }

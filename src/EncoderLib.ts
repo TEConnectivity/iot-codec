@@ -1,4 +1,4 @@
-import { displayUint8ArrayAsHex, insertValueInByte, numberToByteArray } from "./Helper";
+import { displayUint8ArrayAsHex, insertValueInByte, numberToByteArray, uint8ArrayToBase64 } from "./Helper";
 import { CharacType, Characteristic, Operation, SensorFamily, UserPayloadType } from "./Schemas";
 
 /** Découpe un string "A0A0A" en tableau de byte [0x0A,0x0A,0x0A]
@@ -29,13 +29,22 @@ function toByteArray(byte_string: string, size: number) {
  * @return Encoded frame as hexstring (e.g. "AABBCC")
  * 
  */
-export function encode(charac: Characteristic, operationChosen: Operation, user_payload: UserPayloadType, sensorfamily: SensorFamily): string {
+export function encode(charac: Characteristic, operationChosen: Operation, userPayload: UserPayloadType, sensorfamily: SensorFamily = SensorFamily.Singlepoint): Frame {
 
   if (sensorfamily) {
     //should have a different behavior depending on sensor family, currently support only SP
   }
 
+  if (charac.uuid) {
+    if (charac.uuid.length !== 4) {
+      throw new Error("UUID shall be 2 bytes long.")
+    }
+  }
+  else {
+    throw new Error("UUID field is missing in the characteristic.")
+  }
 
+  // TODO : Check charac has the correct shape
 
   var payload_header = new Uint8Array(3);
 
@@ -61,9 +70,28 @@ export function encode(charac: Characteristic, operationChosen: Operation, user_
   var payload = new Uint8Array(0)
 
   // Creation of user payload if needed
-  if (operationChosen === "w" || operationChosen === "wr") {
-    payload = payloadFormatter(charac, user_payload)
+  if (operationChosen === Operation.WRITE || operationChosen === Operation.READWRITE) {
+
+
+    if (charac.lora) {
+      const letterPattern = /(w|wr)/;
+      if (letterPattern.test(charac.lora) === false) {
+        throw new Error("This charactheristic is not writeable.")
+      }
+    }
+    else
+      throw new Error("LoRa rights needs to be mentionned inside the charac object. Check Schemas.")
+
+    if (charac.type !== userPayload.type) {
+      throw new Error("The payload does not fit with this charactheristic. Take a look at Schemas.")
+    }
+
+
+    payload = payloadFormatter(charac, userPayload)
+
+
   }
+
 
 
   // Concatenation of both array
@@ -71,7 +99,8 @@ export function encode(charac: Characteristic, operationChosen: Operation, user_
   frame.set(payload_header, 0)
   frame.set(payload, payload_header.length)
 
-  return displayUint8ArrayAsHex(frame)
+
+  return new Frame(frame);
 }
 
 
@@ -80,8 +109,6 @@ export function encode(charac: Characteristic, operationChosen: Operation, user_
 
 
 function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType) {
-
-  console.log(user_payload)
 
   var encoded_input = new Uint8Array(parseInt(charac.payload_size, 10))
 
@@ -93,11 +120,10 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       encoded_input[1] = parseInt(user_payload.minute, 10) //Minute
       encoded_input[2] = parseInt(user_payload.second, 10) //Second
       break;
-    case (CharacType.THREHSOLD):
+    case (CharacType.THRESHOLD):
       encoded_input[0] = parseInt(user_payload.id_data, 16)
       encoded_input[1] = parseInt(user_payload.param_sel, 16)
       bytesArray = toByteArray(user_payload.data32, 4)
-      console.log(bytesArray)
       encoded_input.set(bytesArray, 2)
       break;
     case (CharacType.BLE_ACTIVATION):
@@ -128,5 +154,33 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
   }
 
   return encoded_input
+
+}
+
+
+class Frame {
+  private frame: Uint8Array;
+
+  constructor(frame: Uint8Array) {
+    this.frame = frame;
+  }
+
+  /** Method to convert the frame to hex string (e.g. [0x00,0xAA] to "00 AA"
+  */
+  toHexString(): string {
+    return displayUint8ArrayAsHex(this.frame);
+  }
+
+  /** Return byte array representation of the frame (e.g. [0x00,0xAA])
+  */
+  toByteArray(): Uint8Array {
+    return this.frame;
+  }
+
+  /** Convenience function to return Base64 encoded version of the frame.
+  */
+  toBase64(): string {
+    return uint8ArrayToBase64(this.frame)
+  }
 
 }
