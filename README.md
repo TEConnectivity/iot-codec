@@ -7,7 +7,7 @@ The license is MIT, this piece of sotware is hence provided "as-is" without any 
 ## Usage
 
 
-The encoding is done using the ```encode``` function. All the input schemas are available on the reference file [Schemas.tsx](src/Schemas.tsx).
+The encoding is done using the ```encode``` function. All the input schemas are available on the reference file [Schemas.ts](src/Schemas.ts).
 
 Input :
 
