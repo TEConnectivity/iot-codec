@@ -1,5 +1,5 @@
 {
-    "version": "1.0.1",
+    "version": "1.1.0",
     "license": "MIT",
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
@@ -19,7 +19,8 @@
         "build": "tsdx build",
         "size": "size-limit",
         "example": "npx ts-node example/index.ts",
-        "test": "tsdx test"
+        "test": "tsdx test",
+        "test:watch": "tsdx test --watch"
     },
     "peerDependencies": {
         "react": ">=16"
@@ -53,6 +54,7 @@
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
         "husky": "^9.0.11",
+        "jest": "^25.5.4",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "size-limit": "^11.1.4",

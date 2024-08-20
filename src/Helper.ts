@@ -179,3 +179,15 @@ export function uint8ArrayToBase64(uint8Array: Uint8Array): string {
     const binaryString = new TextDecoder('latin1').decode(uint8Array);
     return btoa(binaryString);
 }
+
+
+export function is_in_byte_range(input: number): boolean {
+    return is_in_range_inclusive(0, 255, input)
+}
+
+export function is_in_range_inclusive(lower_edge: number, upper_edge: number, input: number): boolean {
+    if (lower_edge <= input && input <= upper_edge)
+        return true
+    else
+        return false
+}

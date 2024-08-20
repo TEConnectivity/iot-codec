@@ -1,5 +1,6 @@
-import { displayUint8ArrayAsHex, insertValueInByte, numberToByteArray, uint8ArrayToBase64 } from "./Helper";
-import { CharacType, Characteristic, Operation, SensorFamily, UserPayloadType } from "./Schemas";
+import { FrequencyBoundariesError, FrequencyRangeError, PeakRangeError, PresetRangeError, TimeOutOfRangeError, UnkownCharacTypeError, WindowingFunctionError, WindowRangeError } from "./Exceptions";
+import { displayUint8ArrayAsHex, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, uint8ArrayToBase64 } from "./Helper";
+import { Characteristic, CharacType, Operation, SensorFamily, UserPayloadType } from "./Schemas";
 
 /** Découpe un string "A0A0A" en tableau de byte [0x0A,0x0A,0x0A]
  */
@@ -31,9 +32,7 @@ function toByteArray(byte_string: string, size: number) {
  */
 export function encode(charac: Characteristic, operationChosen: Operation, userPayload: UserPayloadType, sensorfamily: SensorFamily = SensorFamily.Singlepoint): Frame {
 
-  if (sensorfamily) {
-    //should have a different behavior depending on sensor family, currently support only SP
-  }
+
 
   if (charac.uuid) {
     if (charac.uuid.length !== 4) {
@@ -100,7 +99,15 @@ export function encode(charac: Characteristic, operationChosen: Operation, userP
   frame.set(payload, payload_header.length)
 
 
-  return new Frame(frame);
+  const returnedFrame = new Frame(frame)
+  if (sensorfamily == SensorFamily.Singlepoint) {
+    returnedFrame.fport = 20
+  } else {
+    // TODO : Discuss with Clément if we put 21 to manage different decoder version
+    returnedFrame.fport = 20
+  }
+
+  return returnedFrame;
 }
 
 
@@ -151,6 +158,164 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
     case (CharacType.LORA_PERCENTAGE):
       encoded_input[0] = user_payload.percentage
       break;
+
+    // MULTIPOINT
+    case (CharacType.AXIS_SELECTION):
+      if (user_payload.axis_selected.includes("x"))
+        encoded_input[0] = encoded_input[0] | 0x04
+      if (user_payload.axis_selected.includes("y"))
+        encoded_input[0] = encoded_input[0] | 0x02
+      if (user_payload.axis_selected.includes("z"))
+        encoded_input[0] = encoded_input[0] | 0x01
+      break;
+    case (CharacType.PRESET_SELECTION):
+      if (!is_in_byte_range(user_payload.main_preset))
+        throw new PresetRangeError()
+
+      encoded_input[0] = user_payload.main_preset
+      if (user_payload.secondary_preset) {
+        if (!is_in_byte_range(user_payload.secondary_preset))
+          throw new PresetRangeError()
+        encoded_input[1] = user_payload.secondary_preset
+      }
+      else
+        encoded_input[1] = 0xFF
+      break;
+    case (CharacType.WINDOWING_FUNCTION):
+      if (user_payload.function == "none")
+        encoded_input[0] = 0x00
+      else if (user_payload.function == "hann")
+        encoded_input[0] = 0x01
+      else if (user_payload.function == "flattop")
+        encoded_input[0] = 0x02
+      else
+        throw new WindowingFunctionError()
+      break;
+    case (CharacType.PRESET_CONFIGURATION):
+      if (!is_in_byte_range(user_payload.meas_interval_hour))
+        throw new PresetRangeError()
+      encoded_input[0] = user_payload.preset_id
+
+      encoded_input[1] = user_payload.frame_format
+
+      encoded_input[2] = user_payload.bandwidth_mode
+
+      if (!is_in_byte_range(user_payload.meas_interval_hour))
+        throw new TimeOutOfRangeError()
+      encoded_input[3] = user_payload.meas_interval_hour
+
+      if (!is_in_byte_range(user_payload.meas_interval_minute))
+        throw new TimeOutOfRangeError()
+      encoded_input[4] = user_payload.meas_interval_minute
+
+      if (!is_in_byte_range(user_payload.meas_interval_second))
+        throw new TimeOutOfRangeError()
+      encoded_input[5] = user_payload.meas_interval_second
+
+      break;
+    case (CharacType.PRESET_REQUEST):
+      if (!is_in_byte_range(user_payload.preset_id))
+        throw new PresetRangeError()
+      encoded_input[0] = user_payload.preset_id
+      break;
+    case (CharacType.WINDOW_CONFIGURATION):
+      if (!is_in_byte_range(user_payload.preset_id))
+        throw new PresetRangeError()
+      encoded_input[0] = user_payload.preset_id
+
+      if (!is_in_range_inclusive(1, 8, user_payload.window_id))
+        throw new WindowRangeError()
+      encoded_input[1] = user_payload.window_id
+
+      encoded_input[2] = user_payload.enable == true ? 0x01 : 0x00
+
+      if (!is_in_range_inclusive(1, 64, user_payload.peak_count))
+        throw new PeakRangeError()
+      encoded_input[3] = user_payload.peak_count
+
+      if (user_payload.frequency_min >= user_payload.frequency_max)
+        throw new FrequencyBoundariesError()
+
+      if (!is_in_range_inclusive(0, 20800, user_payload.frequency_min) || !is_in_range_inclusive(0, 20800, user_payload.frequency_max))
+        throw new FrequencyRangeError()
+      encoded_input[3] = user_payload.peak_count
+
+      encoded_input.set(numberToByteArray(user_payload.frequency_min, 2), 4)
+      encoded_input.set(numberToByteArray(user_payload.frequency_max, 2), 6)
+      break;
+    case (CharacType.WINDOW_REQUEST):
+      if (!is_in_byte_range(user_payload.preset_id))
+        throw new PresetRangeError()
+      encoded_input[0] = user_payload.preset_id
+
+      if (!is_in_range_inclusive(1, 8, user_payload.window_id))
+        throw new WindowRangeError()
+      encoded_input[1] = user_payload.window_id
+      break;
+    case (CharacType.MULTIPOINT_THRESHOLD):
+      // ID_DATA(1) | PARAM_SEL(1) | DATA32(4)
+      encoded_input[0] = user_payload.id_data
+
+      if (user_payload.param_sel == "ths_config") {
+        encoded_input[1] = 0x00
+
+        if (user_payload.event_flag)
+          encoded_input[2] |= 0x80
+        if (user_payload.enabled)
+          encoded_input[2] |= 0x40
+        if (user_payload.direction == "above")
+          encoded_input[2] |= 0x20
+        if (user_payload.auto_clear)
+          encoded_input[2] |= 0x10
+        if (user_payload.set_ble_mode)
+          encoded_input[2] |= 0x04
+        if (user_payload.set_lora_mode)
+          encoded_input[2] |= 0x02
+      }
+      else if (user_payload.param_sel == "ths_level") {
+        encoded_input[1] = 0x01
+        encoded_input.set(numberToByteArray(user_payload.level, 4), 2)
+      }
+      else if (user_payload.param_sel == "communication_mode") {
+        encoded_input[1] = 0x03
+        switch (user_payload.ble_mode) {
+          case "burst+periodic":
+            encoded_input[2] = 0x00
+            break;
+          case "burst":
+            encoded_input[2] = 0x01
+            break;
+          case "silent":
+            encoded_input[2] = 0x02
+            break;
+          case "periodic":
+            encoded_input[2] = 0x03
+            break;
+        }
+        switch (user_payload.lora_mode) {
+          case "on_measurement":
+            encoded_input[3] = 0x00
+            break;
+        }
+      }
+      break;
+    case (CharacType.MULTIPOINT_THRESHOLD_REQUEST):
+      encoded_input[0] = user_payload.id_data
+      switch (user_payload.param_sel) {
+        case "ths_config":
+          encoded_input[1] = 0x00
+          break;
+        case "ths_level":
+          encoded_input[1] = 0x01
+          break;
+        case "communication_mode":
+          encoded_input[1] = 0x03
+          break;
+      }
+      break;
+    default:
+      throw new UnkownCharacTypeError()
+
   }
 
   return encoded_input
@@ -161,9 +326,14 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
 class Frame {
   private frame: Uint8Array;
 
-  constructor(frame: Uint8Array) {
+  public fport: number;
+
+  constructor(frame: Uint8Array, fport?: number) {
+    this.fport = fport ?? 0;
     this.frame = frame;
   }
+
+
 
   /** Method to convert the frame to hex string (e.g. [0x00,0xAA] to "00 AA"
   */
