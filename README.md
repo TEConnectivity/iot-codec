@@ -50,14 +50,21 @@ For a full example, please check [example](/example/index.ts) folder, or run ```
 For several examples with a lot of different characteristics, please take a look at the [test folder](/test).
 
 
+### Multi-frame support
+
+For complex characheteristic such as threshold, which needs to be configured by sending several successives frames, a higher level interface is available, with the `encode_multi_frame` function. It is used with `MultiFramePayload`.  
+
+Using this function will generate an array of frame, and each frame should be sent in the order given.
+
+
 # Version mapping 
 
 This librarie encodes frames for the following sensor families : 
 
 | Sensor        | Encoding |
 | ------------- | -------- |
-| 8931  (4.1.0) | ✅        |
-| 8911  (4.1.0) | ✅        |
+| 8931  (4.0.6) | ✅        |
+| 8911  (4.0.6) | ✅        |
 | 59XX  (3.5.0) | ✅        |
 | 69XX  (3.5.0) | ✅        |
 | 79XX  (3.5.0) | ✅        |

@@ -176,7 +176,10 @@ export function base64ToHex(base64String: string): string {
  * [0x01, 0x02] -> "AQI="
  */
 export function uint8ArrayToBase64(uint8Array: Uint8Array): string {
-    const binaryString = new TextDecoder('latin1').decode(uint8Array);
+    let binaryString = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+        binaryString += String.fromCharCode(uint8Array[i]);
+    }
     return btoa(binaryString);
 }
 
@@ -190,4 +193,25 @@ export function is_in_range_inclusive(lower_edge: number, upper_edge: number, in
         return true
     else
         return false
+}
+
+
+/** Découpe un string "A0A0A" en tableau de byte [0x0A,0x0A,0x0A]
+ */
+export function toByteArray(byte_string: string, size: number) {
+    // Assurer que la longueur de la chaîne hexadécimale est un multiple de 2
+    byte_string = byte_string.padStart(size * 2, '0');
+
+    // Convertir chaque paire de caractères hexadécimaux en un octet
+    let byteArray = [];
+    for (let i = 0; i < byte_string.length; i += 2) {
+        byteArray.unshift(parseInt(byte_string.substring(i, i + 2), 16));
+    }
+
+    // Remplir le tableau avec des zéros s'il est inférieur à la taille spécifiée
+    while (byteArray.length < size) {
+        byteArray.push(0);
+    }
+
+    return byteArray.reverse();
 }

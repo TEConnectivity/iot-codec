@@ -1,33 +1,16 @@
 import { FrequencyBoundariesError, FrequencyRangeError, PeakRangeError, PresetRangeError, TimeOutOfRangeError, UnkownCharacTypeError, WindowingFunctionError, WindowRangeError } from "./Exceptions";
-import { displayUint8ArrayAsHex, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, uint8ArrayToBase64 } from "./Helper";
-import { Characteristic, CharacType, Operation, SensorFamily, UserPayloadType } from "./Schemas";
-
-/** Découpe un string "A0A0A" en tableau de byte [0x0A,0x0A,0x0A]
- */
-function toByteArray(byte_string: string, size: number) {
-  // Assurer que la longueur de la chaîne hexadécimale est un multiple de 2
-  byte_string = byte_string.padStart(size * 2, '0');
-
-  // Convertir chaque paire de caractères hexadécimaux en un octet
-  let byteArray = [];
-  for (let i = 0; i < byte_string.length; i += 2) {
-    byteArray.unshift(parseInt(byte_string.substring(i, i + 2), 16));
-  }
-
-  // Remplir le tableau avec des zéros s'il est inférieur à la taille spécifiée
-  while (byteArray.length < size) {
-    byteArray.push(0);
-  }
-
-  return byteArray.reverse();
-}
+import { displayUint8ArrayAsHex, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, toByteArray, uint8ArrayToBase64 } from "./Helper";
+import { Characteristic, CharacTypeCommon, MultiFramePayload, Operation, SensorFamily, UserPayloadType } from "./Sensors/Common";
+import { CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdLevelType } from "./Sensors/MP";
+import { CharacTypeSP } from "./Sensors/SP";
 
 
-/** High Level function to encode frames.
+
+/** High Level function to encode a frame.
  * 
  * See typescript schemas for the definition of input parameters.
  * 
- * @return Encoded frame as hexstring (e.g. "AABBCC")
+ * @return Frame object
  * 
  */
 export function encode(charac: Characteristic, operationChosen: Operation, userPayload: UserPayloadType, sensorfamily: SensorFamily = SensorFamily.Singlepoint): Frame {
@@ -85,6 +68,23 @@ export function encode(charac: Characteristic, operationChosen: Operation, userP
       throw new Error("The payload does not fit with this charactheristic. Take a look at Schemas.")
     }
 
+    if (!userPayload.type) {
+      throw new Error("Payload needed")
+    }
+
+
+
+    if (
+      (sensorfamily == SensorFamily.Singlepoint &&
+        !(isValidPayloadType(userPayload.type, CharacTypeCommon) || isValidPayloadType(userPayload.type, CharacTypeSP)))
+      ||
+      (sensorfamily == SensorFamily.Multipoint &&
+        !(isValidPayloadType(userPayload.type, CharacTypeCommon) || isValidPayloadType(userPayload.type, CharacTypeMP)))
+
+    ) {
+      throw new Error("This payload does not exist on this sensorFamily.")
+    }
+
 
     payload = payloadFormatter(charac, userPayload)
 
@@ -111,9 +111,45 @@ export function encode(charac: Characteristic, operationChosen: Operation, userP
 }
 
 
+/**
+ * Function used to encode special multi-frame charachteristic such as Threshold.
+ * 
+ * Example : Configuring a threshold require several frames (conf, level, comm mode, meas interv...), this function generates them all.
+ * 
+ * 
+ */
+export function encode_multi_frame(charac: Characteristic, operationChosen: Operation, userPayload: MultiFramePayload, sensorfamily: SensorFamily = SensorFamily.Singlepoint): Frame[] {
+
+  const frame_array: Frame[] = []
+
+  switch (userPayload.type) {
+    case (CharacTypeMP.MULTIPOINT_THRESHOLD_MULTI):
+      // Shallow copy to avoid modifying by reference the object
+      const _charac = { ...charac }
+      _charac.type = CharacTypeMP.MULTIPOINT_THRESHOLD
+
+      // Level
+      const payload_level: MultipointThresholdLevelType = { ...userPayload, level: userPayload.level, param_sel: "ths_level", type: CharacTypeMP.MULTIPOINT_THRESHOLD }
+      frame_array.push(encode(_charac, operationChosen, payload_level, sensorfamily))
+
+      // Comm mode, only if LoRa bit is set
+      if (userPayload.set_lora_mode || userPayload.set_ble_mode) {
+        const payload_comm: MultipointThresholdCommModeType = { ...userPayload, param_sel: "communication_mode", type: CharacTypeMP.MULTIPOINT_THRESHOLD }
+        frame_array.push(encode(_charac, operationChosen, payload_comm, sensorfamily))
+      }
+
+      // Conf        
+      const payload_conf: MultipointThresholdConfigType = { ...userPayload, param_sel: "ths_config", type: CharacTypeMP.MULTIPOINT_THRESHOLD }
+      frame_array.push(encode(_charac, operationChosen, payload_conf, sensorfamily))
+      break;
+  }
+
+  return frame_array
+}
 
 
 
+// payloadFormatter could have sensorFamily as parameter and call different version of decoding depending on what's needed
 
 function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType) {
 
@@ -121,46 +157,53 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
 
   let bytesArray: number[];
 
+
   switch (user_payload.type) {
-    case (CharacType.MEAS_INTERVAL):
-      encoded_input[0] = parseInt(user_payload.hour, 10) //Hour
-      encoded_input[1] = parseInt(user_payload.minute, 10) //Minute
-      encoded_input[2] = parseInt(user_payload.second, 10) //Second
-      break;
-    case (CharacType.THRESHOLD):
+    case (CharacTypeCommon.THRESHOLD):
       encoded_input[0] = parseInt(user_payload.id_data, 16)
       encoded_input[1] = parseInt(user_payload.param_sel, 16)
       bytesArray = toByteArray(user_payload.data32, 4)
       encoded_input.set(bytesArray, 2)
       break;
-    case (CharacType.BLE_ACTIVATION):
+    case (CharacTypeCommon.BLE_ACTIVATION):
       encoded_input[0] = user_payload.checked ? 1 : 0;
       break;
-    case (CharacType.BATTERY):
+    case (CharacTypeCommon.BATTERY):
       encoded_input[0] = user_payload.reset ? 0xFF : 0;
       break;
-    case (CharacType.KEEPALIVE):
+    case (CharacTypeCommon.KEEPALIVE):
       encoded_input[0] = insertValueInByte(encoded_input[0], parseInt(user_payload.keepaliveInterval), 0)
       encoded_input[0] = insertValueInByte(encoded_input[0], parseInt(user_payload.keepaliveMode), 3)
       break;
-    case (CharacType.DATALOG_DATA):
+    case (CharacTypeCommon.LORA_MODE):
+      encoded_input[0] = user_payload.mode
+      break;
+    case (CharacTypeCommon.LORA_PERCENTAGE):
+      encoded_input[0] = user_payload.percentage
+      break;
+    case (CharacTypeCommon.TRIGGER_MEASUREMENT):
+      encoded_input[0] = user_payload.disconnect ? 0x81 : 0x01
+      break;
+
+    // SINGLEPOINT
+
+    case (CharacTypeSP.MEAS_INTERVAL):
+      encoded_input[0] = parseInt(user_payload.hour, 10) //Hour
+      encoded_input[1] = parseInt(user_payload.minute, 10) //Minute
+      encoded_input[2] = parseInt(user_payload.second, 10) //Second
+      break;
+    case (CharacTypeSP.DATALOG_DATA):
       encoded_input[0] = user_payload.datalog_type
       encoded_input.set(numberToByteArray(user_payload.index, 2), 1)
       encoded_input[3] = user_payload.length
       break;
-    case (CharacType.DATALOG_ANALYSIS):
+    case (CharacTypeSP.DATALOG_ANALYSIS):
       encoded_input[0] = 0x02 // check spec, always 2
       encoded_input.set(numberToByteArray(user_payload.length, 2), 1)
       break;
-    case (CharacType.LORA_MODE):
-      encoded_input[0] = user_payload.mode
-      break;
-    case (CharacType.LORA_PERCENTAGE):
-      encoded_input[0] = user_payload.percentage
-      break;
 
     // MULTIPOINT
-    case (CharacType.AXIS_SELECTION):
+    case (CharacTypeMP.AXIS_SELECTION):
       if (user_payload.axis_selected.includes("x"))
         encoded_input[0] = encoded_input[0] | 0x04
       if (user_payload.axis_selected.includes("y"))
@@ -168,20 +211,19 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       if (user_payload.axis_selected.includes("z"))
         encoded_input[0] = encoded_input[0] | 0x01
       break;
-    case (CharacType.PRESET_SELECTION):
+    case (CharacTypeMP.PRESET_SELECTION):
+
+      encoded_input[0] = user_payload.main_preset
       if (!is_in_byte_range(user_payload.main_preset))
         throw new PresetRangeError()
 
-      encoded_input[0] = user_payload.main_preset
-      if (user_payload.secondary_preset) {
-        if (!is_in_byte_range(user_payload.secondary_preset))
-          throw new PresetRangeError()
-        encoded_input[1] = user_payload.secondary_preset
-      }
-      else
-        encoded_input[1] = 0xFF
+      encoded_input[1] = user_payload.secondary_preset ?? 0xFF
+      if (!is_in_byte_range(encoded_input[1]))
+        throw new PresetRangeError()
+
+
       break;
-    case (CharacType.WINDOWING_FUNCTION):
+    case (CharacTypeMP.WINDOWING_FUNCTION):
       if (user_payload.function == "none")
         encoded_input[0] = 0x00
       else if (user_payload.function == "hann")
@@ -191,7 +233,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       else
         throw new WindowingFunctionError()
       break;
-    case (CharacType.PRESET_CONFIGURATION):
+    case (CharacTypeMP.PRESET_CONFIGURATION):
       if (!is_in_byte_range(user_payload.meas_interval_hour))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
@@ -213,12 +255,12 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       encoded_input[5] = user_payload.meas_interval_second
 
       break;
-    case (CharacType.PRESET_REQUEST):
+    case (CharacTypeMP.PRESET_REQUEST):
       if (!is_in_byte_range(user_payload.preset_id))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
       break;
-    case (CharacType.WINDOW_CONFIGURATION):
+    case (CharacTypeMP.WINDOW_CONFIGURATION):
       if (!is_in_byte_range(user_payload.preset_id))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
@@ -243,7 +285,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       encoded_input.set(numberToByteArray(user_payload.frequency_min, 2), 4)
       encoded_input.set(numberToByteArray(user_payload.frequency_max, 2), 6)
       break;
-    case (CharacType.WINDOW_REQUEST):
+    case (CharacTypeMP.WINDOW_REQUEST):
       if (!is_in_byte_range(user_payload.preset_id))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
@@ -252,11 +294,11 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
         throw new WindowRangeError()
       encoded_input[1] = user_payload.window_id
       break;
-    case (CharacType.MULTIPOINT_THRESHOLD):
+    case (CharacTypeMP.MULTIPOINT_THRESHOLD):
       // ID_DATA(1) | PARAM_SEL(1) | DATA32(4)
       encoded_input[0] = user_payload.id_data
 
-      if (user_payload.param_sel == "ths_config") {
+      if (user_payload.param_sel === "ths_config") {
         encoded_input[1] = 0x00
 
         if (user_payload.event_flag)
@@ -272,11 +314,11 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
         if (user_payload.set_lora_mode)
           encoded_input[2] |= 0x02
       }
-      else if (user_payload.param_sel == "ths_level") {
+      else if (user_payload.param_sel === "ths_level") {
         encoded_input[1] = 0x01
         encoded_input.set(numberToByteArray(user_payload.level, 4), 2)
       }
-      else if (user_payload.param_sel == "communication_mode") {
+      else if (user_payload.param_sel === "communication_mode") {
         encoded_input[1] = 0x03
         switch (user_payload.ble_mode) {
           case "burst+periodic":
@@ -299,7 +341,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
         }
       }
       break;
-    case (CharacType.MULTIPOINT_THRESHOLD_REQUEST):
+    case (CharacTypeMP.MULTIPOINT_THRESHOLD_REQUEST):
       encoded_input[0] = user_payload.id_data
       switch (user_payload.param_sel) {
         case "ths_config":
@@ -323,7 +365,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
 }
 
 
-class Frame {
+export class Frame {
   private frame: Uint8Array;
 
   public fport: number;
@@ -333,9 +375,7 @@ class Frame {
     this.frame = frame;
   }
 
-
-
-  /** Method to convert the frame to hex string (e.g. [0x00,0xAA] to "00 AA"
+  /** Method to convert the frame to hex string (e.g. [0x00,0xAA] to "00 AA")
   */
   toHexString(): string {
     return displayUint8ArrayAsHex(this.frame);
@@ -353,4 +393,15 @@ class Frame {
     return uint8ArrayToBase64(this.frame)
   }
 
+}
+
+/**
+ * Compare if type match with enumObj
+ * 
+ * @param type The userPayload type
+ * @param enumObj The type of Charac to be compared with
+ * @returns true or false
+ */
+function isValidPayloadType<T extends Record<string, string>>(type: string, enumObj: T): type is T[keyof T] {
+  return Object.values(enumObj).includes(type as T[keyof T]);
 }
