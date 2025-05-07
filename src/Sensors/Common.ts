@@ -1,4 +1,4 @@
-import { AxisSelectionType, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
+import { AxisSelectionType, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, RawTimeDataType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
 import { CharacTypeSP, DatalogAnalysisType, DatalogArrayType } from "./SP"
 
 export enum SensorFamily {
@@ -141,7 +141,8 @@ export type UserPayloadType = MeasIntervalType |
   MultipointThresholdConfigType |
   MultipointThresholdLevelType |
   MultipointThresholdCommModeType |
-  MultipointThresholdRequestType
+  MultipointThresholdRequestType |
+  RawTimeDataType
 
 
 /**

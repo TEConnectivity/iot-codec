@@ -14,6 +14,7 @@ export enum CharacTypeMP {
     MULTIPOINT_THRESHOLD_REQUEST = "multipoint_threshold_request",
     MULTIPOINT_THRESHOLD_MULTI = "multipoint_threshold_multi",
     MEAS_INTERVAL = "meas_interval",
+    RAW_TIME_DATA = "raw_time_data",
 
 }
 
@@ -151,6 +152,13 @@ export interface MultipointThresholdHL {
 }
 
 
+export interface RawTimeDataType {
+    type: CharacTypeMP.RAW_TIME_DATA
+    axis_selected: ("x" | "y" | "z")
+    index: number,
+    length: number
+}
+
 export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
     // MULTIPOINT
     axis_selection: {
@@ -241,7 +249,14 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         lora: "r",
         type: CharacTypeMP.MEAS_INTERVAL
     },
-};
+    raw_time_data: {
+        uuid: "DA03",
+        charac_name: "Raw Time Data",
+        payload_size: "4",
+        ble: "r",
+        lora: "wr",
+        type: CharacTypeMP.RAW_TIME_DATA
+    },};
 
 
 export enum Multipoint_Threshold_ID_DATA {

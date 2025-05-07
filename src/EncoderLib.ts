@@ -203,6 +203,21 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       break;
 
     // MULTIPOINT
+    case (CharacTypeMP.RAW_TIME_DATA):
+      switch(user_payload.axis_selected){
+        case "x":
+          encoded_input[0] = 0x04
+          break;
+        case "y":
+          encoded_input[0] = 0x02
+          break;
+        case "z":
+          encoded_input[0] = 0x01
+          break;
+      }
+      encoded_input.set(numberToByteArray(user_payload.index, 2), 1)
+      encoded_input[3] = user_payload.length
+      break;
     case (CharacTypeMP.AXIS_SELECTION):
       if (user_payload.axis_selected.includes("x"))
         encoded_input[0] = encoded_input[0] | 0x04
