@@ -63,8 +63,8 @@ This librarie encodes frames for the following sensor families :
 
 | Sensor        | Encoding |
 | ------------- | -------- |
-| 8931  (4.0.6) | ✅        |
-| 8911  (4.0.6) | ✅        |
+| 8931  (4.1.x) | ✅        |
+| 8911  (4.1.x) | ✅        |
 | 59XX  (3.5.0) | ✅        |
 | 69XX  (3.5.0) | ✅        |
 | 79XX  (3.5.0) | ✅        |
