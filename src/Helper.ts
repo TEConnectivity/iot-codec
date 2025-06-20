@@ -126,13 +126,13 @@ export function hexStringToUint8Array(hexString: string) {
 
 /** Converts a number to its byte array
  * 
- * size 2, number 256 -> [0x01, 0xFF]
+ * size 2, number 256 -> [0x01, 0x00]
  * 
  * @param number : number to be converted 
  * @param size : initial size. If the provided size is not enough, it is automatically resized.
  * @returns bytearray
  */
-export function numberToByteArray(number: any, size: number) {
+export function numberToByteArray(number: number, size: number): number[] {
     // Determine the number of bytes needed
     const byteCount = Math.ceil(Math.log2(number + 1) / 8);
 
@@ -214,4 +214,28 @@ export function toByteArray(byte_string: string, size: number) {
     }
 
     return byteArray.reverse();
+}
+
+
+
+/** Converts a 32-bit float to its IEEE 754 byte array representation
+ * 
+ * @param value : float value to be converted 
+ * @param littleEndian : byte order (default: false for big-endian)
+ * @returns 4-byte array representing the float
+ */
+export function floatToByteArray(value: number, littleEndian: boolean = false): number[] {
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+
+    // Set the float value in the buffer
+    view.setFloat32(0, value, littleEndian);
+
+    // Extract bytes from the buffer
+    const byteArray: number[] = [];
+    for (let i = 0; i < 4; i++) {
+        byteArray.push(view.getUint8(i));
+    }
+
+    return byteArray;
 }

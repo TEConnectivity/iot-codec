@@ -97,4 +97,13 @@ Typical usage to publish NPM package:
 - Increase version number (match git tag) in package.json
 - git add / commit / push / tag
 - `npm login` : Login to the NPM registry
-- `npm publish` : Push the package to NPM
+- `npm publish` : Push the package to NPM 
+
+
+Typical usage to develop with the module :
+- `npm link`
+- `npm run build`
+- On the target repo :
+  - `npm uninstall <iot-codec : version>`
+  - `npm link <iot-codec : version>`
+

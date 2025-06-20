@@ -57,3 +57,5 @@ export const Charac_DB_SP: Record<CharacTypeSP, Characteristic> = {
         type: CharacTypeSP.MEAS_INTERVAL
     },
 }
+
+

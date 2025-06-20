@@ -133,6 +133,7 @@ export interface MultipointThresholdRequestType {
  */
 export interface MultipointThresholdHL {
     type: CharacTypeMP.MULTIPOINT_THRESHOLD_MULTI
+    multi_frame: true
     id_data: Multipoint_Threshold_ID_DATA
 
     // Conf frame
@@ -256,7 +257,8 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         ble: "r",
         lora: "wr",
         type: CharacTypeMP.RAW_TIME_DATA
-    },};
+    },
+};
 
 
 export enum Multipoint_Threshold_ID_DATA {

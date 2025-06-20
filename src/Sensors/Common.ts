@@ -1,9 +1,14 @@
-import { AxisSelectionType, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, RawTimeDataType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
-import { CharacTypeSP, DatalogAnalysisType, DatalogArrayType } from "./SP"
+import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, RawTimeDataType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
+import { Charac_DB_SP, CharacTypeSP, DatalogAnalysisType, DatalogArrayType } from "./SP"
+import { Charac_DB_Vib4_2, CharacTypeVib4_2, ProtocolVersionType } from "./4.2.0/Vibration"
+
 
 export enum SensorFamily {
   Singlepoint = "SP",
-  Multipoint = "MP"
+  Multipoint = "MP",
+  Vibration4_1 = Multipoint,
+  Vibration4_2 = "Vib_4.2",
+  Vibration4_3 = "Vib_4.3"
 }
 
 export interface Characteristic {
@@ -17,7 +22,7 @@ export interface Characteristic {
 
 export enum Operation {
   READ = "r",
-  READWRITE = "wr",
+  WRITEREAD = "wr",
   WRITE = "w"
 }
 
@@ -53,7 +58,7 @@ export enum CharacTypeCommon {
 
 
 
-export type CharacType = CharacTypeCommon | CharacTypeSP | CharacTypeMP
+export type CharacType = CharacTypeCommon | CharacTypeSP | CharacTypeMP | CharacTypeVib4_2
 
 
 // ---------------------
@@ -142,7 +147,9 @@ export type UserPayloadType = MeasIntervalType |
   MultipointThresholdLevelType |
   MultipointThresholdCommModeType |
   MultipointThresholdRequestType |
-  RawTimeDataType
+  MultipointThresholdHL |
+  RawTimeDataType |
+  ProtocolVersionType
 
 
 /**
@@ -348,3 +355,58 @@ export const Charac_DB_common: Record<CharacTypeCommon, Characteristic> = {
     type: CharacTypeCommon.TRIGGER_MEASUREMENT
   }
 }
+
+
+
+export type FirmwareSupportMapType = typeof FirmwareSupportMap;
+
+
+// Enums for better autocomplete and documentation
+export enum FirmwareVersion {
+  /** Firmware applying to singlepoint sensors */
+  V3_5 = "3.5",
+  /** Firmware applying to vibration sensors. Called "multipoint" in the documentation. */
+  V4_1 = "4.1",
+  /** 4.2 Beta, applying to vibration sensors */
+  V4_2_beta = "4.2"
+}
+
+export enum DeviceModel {
+  /** Humidity, Pressure, Temperature sensors : 59XXN, 69XXN, 79XXN */
+  SINGLEPOINT = "SP",
+  /** Vibration sensors : 8931N, 8911N */
+  VIBRATION = "Vib"
+}
+
+
+export type FirmwareCharacs<
+  V extends FirmwareVersion,
+  M extends keyof FirmwareSupportMapType[V]
+> = FirmwareSupportMapType[V][M];
+
+
+
+/* Which feature is supported on which firmware & model */
+export const FirmwareSupportMap = {
+  [FirmwareVersion.V3_5]: {
+    [DeviceModel.SINGLEPOINT]: {
+      ...Charac_DB_common,
+      ...Charac_DB_SP
+    }
+  },
+  [FirmwareVersion.V4_1]: {
+    [DeviceModel.VIBRATION]: {
+      ...Charac_DB_common,
+      ...Charac_DB_MP,
+    }
+  },
+  [FirmwareVersion.V4_2_beta]: {
+    [DeviceModel.VIBRATION]: {
+      ...Charac_DB_common,
+      ...Charac_DB_MP,
+      ...Charac_DB_Vib4_2
+    }
+  }
+} as const;
+
+
