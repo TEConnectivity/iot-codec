@@ -34,6 +34,8 @@ describe('PRESET SELECTION', () => {
     it('Write Select Preset 2 for Meas slot 1 and Preset 6 for Meas slot 2 (rotating)', () => {
         let payload: PresetSelectionType = { main_preset: 2, secondary_preset: 6, type: CharacTypeMP.PRESET_SELECTION }
         expect(encode(Charac_DB_MP.preset_selection, Operation.WRITE, payload).toHexString()).toEqual("01 FA 02 02 06")
+        expect(encode(Charac_DB_MP.preset_selection, Operation.WRITE, payload).fport).toEqual(20)
+
     });
 
 })
