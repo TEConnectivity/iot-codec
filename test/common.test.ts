@@ -49,5 +49,11 @@ describe('BASE64', () => {
 })
 
 
+describe('MODEL NUMBER', () => {
 
+    test('Read model number', () => {
+        expect(encode(Charac_DB_common.model_number, Operation.READ, {} as UserPayloadType).toHexString()).toEqual("00 2A 24")
+        expect(encode(Charac_DB_common.model_number, Operation.READ, {} as UserPayloadType).fport).toEqual(20)
+    });
+})
 
