@@ -94,10 +94,9 @@ export function encode(charac: Characteristic, operationChosen: Operation, userP
 
   const returnedFrame = new Frame(frame)
 
-  if (isValidPayloadType(charac.type, CharacTypeSP) || isValidPayloadType(charac.type, CharacTypeMP) || isValidPayloadType(charac.type, CharacTypeCommon))
-    returnedFrame.fport = 20
-  if (isValidPayloadType(charac.type, CharacTypeVib4_2))
-    returnedFrame.fport = 21
+  // if (isValidPayloadType(charac.type, CharacTypeSP) || isValidPayloadType(charac.type, CharacTypeMP) || isValidPayloadType(charac.type, CharacTypeCommon))
+  returnedFrame.fport = 20
+
 
   return returnedFrame;
 }

@@ -28,10 +28,6 @@ describe('ERROR HANDLING', () => {
         expect(() => encode(Charac_DB_common.app_eui, Operation.WRITE, {} as UserPayloadType)).toThrow("This charactheristic is not writeable.")
     });
 
-    // test('Should throw error when trying to write an unsupported payload with a mismatched sensorFamily', () => {
-    //     var payload: PresetSelectionType = { main_preset: 1, type: CharacTypeMP.PRESET_SELECTION }
-    //     expect(() => encode(Charac_DB_MP.preset_selection, Operation.WRITE, payload, SensorFamily.Singlepoint)).toThrow("This payload does not exist on this firmware version.")
-    // });
 
 })
 
@@ -54,20 +50,4 @@ describe('BASE64', () => {
 
 
 
-
-
-
-// test('toto', () => {
-//     // let encoder = new Encoder("4.1")
-//     let encoder = createEncoder("4.1")
-
-
-
-//     let read_frame = encoder.lora_percentage.read()
-//     console.log(read_frame)
-// });
-
-
-// let payload: RawTimeDataType = { axis_selected:"x", index:255,length:6, type: CharacTypeMP.RAW_TIME_DATA }
-// let write_frame = encoder.meas_interval.write(payload)
 
