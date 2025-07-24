@@ -485,14 +485,3 @@ export class Frame {
   }
 
 }
-
-/**
- * Compare if type match with enumObj
- * 
- * @param type The userPayload type
- * @param enumObj The type of Charac to be compared with
- * @returns true or false
- */
-function isValidPayloadType<T extends Record<string, string>>(type: string, enumObj: T): type is T[keyof T] {
-  return Object.values(enumObj).includes(type as T[keyof T]);
-}
