@@ -1,6 +1,7 @@
 import { FrequencyBoundariesError, FrequencyRangeError, PeakRangeError, PresetRangeError, TimeOutOfRangeError, UnkownCharacTypeError, WindowingFunctionError, WindowRangeError } from "./Exceptions";
 import { displayUint8ArrayAsHex, floatToByteArray, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, toByteArray, uint8ArrayToBase64 } from "./Helper";
 import { CharacTypeVib4_2 } from "./Sensors/4.2.0/Vibration";
+import { CharacTypeVib5_2 } from "./Sensors/5.2.0/Vibration";
 import { Characteristic, CharacTypeCommon, FirmwareCharacs, FirmwareSupportMap, FirmwareSupportMapType, FirmwareVersion, MultiFramePayload, Operation, UserPayloadType } from "./Sensors/Common";
 import { CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdLevelType } from "./Sensors/MP";
 import { CharacTypeSP } from "./Sensors/SP";
@@ -105,7 +106,7 @@ export function encode(charac: Characteristic, operationChosen: Operation, userP
 type EncoderAccessors = {
   read: () => Frame;
   write: (payload: UserPayloadType | MultiFramePayload) => Frame[];
-  writeread?: (payload: UserPayloadType | MultiFramePayload) => Frame[];
+  writeread: (payload: UserPayloadType | MultiFramePayload) => Frame[];
 };
 
 type AccessorMap<Characs> = {
@@ -274,21 +275,6 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       break;
 
     // MULTIPOINT
-    case (CharacTypeMP.RAW_TIME_DATA):
-      switch (user_payload.axis_selected) {
-        case "x":
-          encoded_input[0] = 0x04
-          break;
-        case "y":
-          encoded_input[0] = 0x02
-          break;
-        case "z":
-          encoded_input[0] = 0x01
-          break;
-      }
-      encoded_input.set(numberToByteArray(user_payload.index, 2), 1)
-      encoded_input[3] = user_payload.length
-      break;
     case (CharacTypeMP.AXIS_SELECTION):
       if (user_payload.axis_selected.includes("x"))
         encoded_input[0] = encoded_input[0] | 0x04
@@ -446,9 +432,29 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
     case (CharacTypeVib4_2.PROTOCOL_VERSION):
       encoded_input[0] = user_payload.version
       break;
+
+
+    // Vib 5.2
+    case (CharacTypeVib5_2.RAW_TIME_DATA):
+      switch (user_payload.axis_selected) {
+        case "x":
+          encoded_input[0] = 0x04
+          break;
+        case "y":
+          encoded_input[0] = 0x02
+          break;
+        case "z":
+          encoded_input[0] = 0x01
+          break;
+      }
+      encoded_input.set(numberToByteArray(user_payload.index, 2), 1)
+      encoded_input[3] = user_payload.length
+      break;
+
+
+
     default:
       throw new UnkownCharacTypeError()
-
   }
 
   return encoded_input

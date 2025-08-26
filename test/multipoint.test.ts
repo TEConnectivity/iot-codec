@@ -1,6 +1,6 @@
 import { createEncoder, encode, encode_multi_frame } from "../src/EncoderLib";
 import { DeviceModel, FirmwareVersion, Operation, UserPayloadType } from "../src/Sensors/Common";
-import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, Multipoint_Threshold_ID_DATA, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, RawTimeDataType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "../src/Sensors/MP";
+import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, Multipoint_Threshold_ID_DATA, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "../src/Sensors/MP";
 
 
 const encoder = createEncoder(FirmwareVersion.V4_1, DeviceModel.VIBRATION)
@@ -151,16 +151,3 @@ describe('THRESHOLD CONFIGURATION', () => {
 
 })
 
-
-
-describe('Raw Time Data', () => {
-
-    it('Request Raw time data', () => {
-        let payload: RawTimeDataType = { axis_selected: "x", index: 255, length: 6, type: CharacTypeMP.RAW_TIME_DATA }
-        expect(encode(Charac_DB_MP.raw_time_data, Operation.WRITEREAD, payload).toHexString()).toEqual("02 DA 03 04 00 FF 06")
-        expect(encode(Charac_DB_MP.raw_time_data, Operation.WRITEREAD, payload).fport).toEqual(20)
-    });
-
-
-
-})

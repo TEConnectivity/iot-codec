@@ -1,6 +1,7 @@
-import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, RawTimeDataType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
+import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
 import { Charac_DB_SP, CharacTypeSP, DatalogAnalysisType, DatalogArrayType } from "./SP"
 import { Charac_DB_Vib4_2, CharacTypeVib4_2, ProtocolVersionType } from "./4.2.0/Vibration"
+import { Charac_DB_Vib5_2, CharacTypeVib5_2, RawTimeDataType } from "./5.2.0/Vibration"
 
 
 export enum SensorFamily {
@@ -58,7 +59,7 @@ export enum CharacTypeCommon {
 
 
 
-export type CharacType = CharacTypeCommon | CharacTypeSP | CharacTypeMP | CharacTypeVib4_2
+export type CharacType = CharacTypeCommon | CharacTypeSP | CharacTypeMP | CharacTypeVib4_2 | CharacTypeVib5_2
 
 
 // ---------------------
@@ -368,7 +369,10 @@ export enum FirmwareVersion {
   /** Firmware applying to vibration sensors. Called "multipoint" in the documentation. */
   V4_1 = "4.1",
   /** 4.2 Beta, applying to vibration sensors */
-  V4_2_beta = "4.2"
+  V4_2_beta = "4.2",
+
+  /** 4.2 Beta, applying to vibration sensors for now */
+  V5_2_beta = "5.2"
 }
 
 export enum DeviceModel {
@@ -405,6 +409,11 @@ export const FirmwareSupportMap = {
       ...Charac_DB_common,
       ...Charac_DB_MP,
       ...Charac_DB_Vib4_2
+    }
+  },
+  [FirmwareVersion.V5_2_beta]: {
+    [DeviceModel.VIBRATION]: {
+      ...Charac_DB_Vib5_2
     }
   }
 } as const;
