@@ -1,7 +1,7 @@
 import { FrequencyBoundariesError, FrequencyRangeError, PeakRangeError, PresetRangeError, TimeOutOfRangeError, UnkownCharacTypeError, WindowingFunctionError, WindowRangeError } from "./Exceptions";
 import { displayUint8ArrayAsHex, floatToByteArray, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, toByteArray, uint8ArrayToBase64 } from "./Helper";
 import { CharacTypeVib4_2 } from "./Sensors/4.2.0/Vibration";
-import { CharacTypeVib5_2 } from "./Sensors/5.2.0/Vibration";
+import { CharacTypeVib4_1_4 } from "./Sensors/4.1.4/Vibration";
 import { Characteristic, CharacTypeCommon, FirmwareCharacs, FirmwareSupportMap, FirmwareSupportMapType, FirmwareVersion, MultiFramePayload, Operation, UserPayloadType } from "./Sensors/Common";
 import { CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdLevelType } from "./Sensors/MP";
 import { CharacTypeSP } from "./Sensors/SP";
@@ -434,8 +434,8 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       break;
 
 
-    // Vib 5.2
-    case (CharacTypeVib5_2.RAW_TIME_DATA):
+    // Vib 4.1_4
+    case (CharacTypeVib4_1_4.RAW_TIME_DATA):
       switch (user_payload.axis_selected) {
         case "x":
           encoded_input[0] = 0x04

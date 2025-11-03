@@ -1,7 +1,7 @@
 import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
 import { Charac_DB_SP, CharacTypeSP, DatalogAnalysisType, DatalogArrayType } from "./SP"
 import { Charac_DB_Vib4_2, CharacTypeVib4_2, ProtocolVersionType } from "./4.2.0/Vibration"
-import { Charac_DB_Vib5_2, CharacTypeVib5_2, RawTimeDataType } from "./5.2.0/Vibration"
+import { Charac_DB_Vib5_2, CharacTypeVib4_1_4, RawTimeDataType } from "./4.1.4/Vibration"
 
 
 export enum SensorFamily {
@@ -59,7 +59,7 @@ export enum CharacTypeCommon {
 
 
 
-export type CharacType = CharacTypeCommon | CharacTypeSP | CharacTypeMP | CharacTypeVib4_2 | CharacTypeVib5_2
+export type CharacType = CharacTypeCommon | CharacTypeSP | CharacTypeMP | CharacTypeVib4_2 | CharacTypeVib4_1_4
 
 
 // ---------------------
