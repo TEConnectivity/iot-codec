@@ -1,7 +1,7 @@
 import { AxisSelectionType, Charac_DB_MP, CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdHL, MultipointThresholdLevelType, MultipointThresholdRequestType, PresetConfigurationType, PresetRequestType, PresetSelectionType, WindowConfigurationType, WindowingFunctionType, WindowRequestType } from "./MP"
 import { Charac_DB_SP, CharacTypeSP, DatalogAnalysisType, DatalogArrayType } from "./SP"
 import { Charac_DB_Vib4_2, CharacTypeVib4_2, ProtocolVersionType } from "./4.2.0/Vibration"
-import { Charac_DB_Vib5_2, CharacTypeVib4_1_4, RawTimeDataType } from "./4.1.4/Vibration"
+import { Charac_DB_Vib4_1_4, CharacTypeVib4_1_4, RawTimeDataType } from "./4.1.4/Vibration"
 
 
 export enum SensorFamily {
@@ -413,7 +413,7 @@ export const FirmwareSupportMap = {
   },
   [FirmwareVersion.V5_2_beta]: {
     [DeviceModel.VIBRATION]: {
-      ...Charac_DB_Vib5_2
+      ...Charac_DB_Vib4_1_4
     }
   }
 } as const;
