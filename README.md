@@ -86,25 +86,20 @@ NPM scripts :
 - `npm run build` : build the project
 - `npm run start` : watch the project (build on file change)
 - `npm run size` : estimate size of project
-- `npm run example` : run the examples present in index.ts
 - `npm run test` : run the tests files
 - `npm run test:watch` : run the tests files in watch mode
 
-
 Typical usage to publish NPM package: 
 
-- `npm run test` : Validate all the test
-- `npm run build` : Build the project (create dist folder)
-- Increase version number (match git tag) in package.json
-- git add / commit / push / tag
-- `npm login` : Login to the NPM registry
-- `npm publish` : Push the package to NPM. (dist folder)
-
+- `npm login` : Login to the NPM registry (authenticate once)
+- `npm pack`  : Optional, dry run before publish (to verify contents)
+- `npm audit` : Optional, security check
+- `npm run release:patch|minor|major` : Release patch or minor or major version (it automatically increments version in package.json)
 
 Typical usage to develop with the module :
 - `npm link`
 - `npm run build`
 - On the target repo :
-  - `npm uninstall <iot-codec : version>`
-  - `npm link <iot-codec : version>`
+  - `npm uninstall @te-connectivity/iot-codec`
+  - `npm link @te-connectivity/iot-codec@<version>`
 

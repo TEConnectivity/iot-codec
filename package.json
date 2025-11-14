@@ -5,7 +5,7 @@
     "typings": "dist/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "https://github.com/TEConnectivity/iot-codec"
+        "url": "git+https://github.com/TEConnectivity/iot-codec.git"
     },
     "keywords": [
         "TE Connectivity",
@@ -23,10 +23,8 @@
         "start": "tsdx watch",
         "build": "tsdx build",
         "size": "size-limit",
-        "example": "npx ts-node example/index.ts",
         "test": "tsdx test",
         "test:watch": "tsdx test --watch",
-        "prepare": "npm run build",
         "clean": "rimraf dist",
         "prepublishOnly": "npm run clean && npm run build && npm test",
         "release:patch": "npm version patch && npm publish && git push --follow-tags",
