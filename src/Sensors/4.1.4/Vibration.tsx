@@ -14,7 +14,7 @@ export interface RawTimeDataType {
     length: number
 }
 
-export const Charac_DB_Vib5_2: Record<CharacTypeVib4_1_4, Characteristic> = {
+export const Charac_DB_Vib4_1_4: Record<CharacTypeVib4_1_4, Characteristic> = {
     raw_time_data: {
         uuid: "DA03",
         charac_name: "Raw Time Data",
