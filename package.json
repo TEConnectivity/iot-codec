@@ -7,9 +7,14 @@
         "type": "git",
         "url": "https://github.com/TEConnectivity/iot-codec"
     },
+    "keywords": [
+        "TE Connectivity",
+        "LoRaWAN downlink",
+        "encoding library"
+    ],
     "files": [
         "dist",
-        "src"
+        "README.md"
     ],
     "engines": {
         "node": ">=10"
@@ -20,7 +25,13 @@
         "size": "size-limit",
         "example": "npx ts-node example/index.ts",
         "test": "tsdx test",
-        "test:watch": "tsdx test --watch"
+        "test:watch": "tsdx test --watch",
+        "prepare": "npm run build",
+        "clean": "rimraf dist",
+        "prepublishOnly": "npm run clean && npm run build && npm test",
+        "release:patch": "npm version patch && npm publish && git push --follow-tags",
+        "release:minor": "npm version minor && npm publish && git push --follow-tags",
+        "release:major": "npm version major && npm publish && git push --follow-tags"
     },
     "peerDependencies": {
         "react": ">=16"
@@ -58,6 +69,7 @@
         "jest": "^25.5.4",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "rimraf": "^6.1.0",
         "size-limit": "^11.1.4",
         "tsdx": "^0.14.1",
         "tslib": "^2.6.2",
