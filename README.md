@@ -94,8 +94,8 @@ NPM scripts :
 Typical usage to publish NPM package: 
 
 - `npm run test` : Validate all the test
-- `npm run build` : Build the project (create dist folder)
 - Increase version number (match git tag) in package.json
+- `npm run build` : Build the project (create dist folder)
 - git add / commit / push / tag
 - `npm login` : Login to the NPM registry
 - `npm publish` : Push the package to NPM. (dist folder)

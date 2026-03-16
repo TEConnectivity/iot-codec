@@ -1,9 +1,9 @@
 import { createEncoder } from "../src/EncoderLib";
 import { CharacTypeVib4_1_4, RawTimeDataType } from "../src/Sensors/4.1.4/Vibration";
-import { DeviceModel, FirmwareVersion } from "../src/Sensors/Common";
+import { DeviceModel, FirmwareVersion } from "../src/Sensors/Mapping";
 
 
-const encoder = createEncoder(FirmwareVersion.V5_2_beta, DeviceModel.VIBRATION)
+const encoder = createEncoder(FirmwareVersion.V5_2, DeviceModel.VIBRATION)
 
 describe('Raw Time Data', () => {
 

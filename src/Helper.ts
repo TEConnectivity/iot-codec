@@ -195,6 +195,11 @@ export function is_in_range_inclusive(lower_edge: number, upper_edge: number, in
         return false
 }
 
+export function assert_range_inclusive(lower_edge: number, upper_edge: number, input: number) {
+    if (!is_in_range_inclusive(lower_edge, upper_edge, input))
+        throwRangeError(lower_edge, upper_edge)
+}
+
 
 /** Découpe un string "A0A0A" en tableau de byte [0x0A,0x0A,0x0A]
  */
@@ -238,4 +243,9 @@ export function floatToByteArray(value: number, littleEndian: boolean = false): 
     }
 
     return byteArray;
+}
+
+
+function throwRangeError(min: number, max: number) {
+    throw RangeError(`Value should be between ${min} and ${max}`);
 }
