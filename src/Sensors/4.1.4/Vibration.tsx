@@ -1,4 +1,4 @@
-import { Characteristic } from "../Common"
+import { Characteristic } from "../Mapping"
 
 export enum CharacTypeVib4_1_4 {
 

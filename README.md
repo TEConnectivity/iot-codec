@@ -91,10 +91,13 @@ NPM scripts :
 
 Typical usage to publish NPM package: 
 
-- `npm login` : Login to the NPM registry (authenticate once)
-- `npm pack`  : Optional, dry run before publish (to verify contents)
-- `npm audit` : Optional, security check
-- `npm run release:patch|minor|major` : Release patch or minor or major version (it automatically increments version in package.json)
+- `npm run test` : Validate all the test
+- Increase version number (match git tag) in package.json
+- `npm run build` : Build the project (create dist folder)
+- git add / commit / push / tag
+- `npm login` : Login to the NPM registry
+- `npm publish` : Push the package to NPM. (dist folder)
+
 
 Typical usage to develop with the module :
 - `npm link`

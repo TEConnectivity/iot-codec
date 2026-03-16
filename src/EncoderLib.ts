@@ -1,10 +1,14 @@
-import { FrequencyBoundariesError, FrequencyRangeError, PeakRangeError, PresetRangeError, TimeOutOfRangeError, UnkownCharacTypeError, WindowingFunctionError, WindowRangeError } from "./Exceptions";
-import { displayUint8ArrayAsHex, floatToByteArray, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, toByteArray, uint8ArrayToBase64 } from "./Helper";
-import { CharacTypeVib4_2 } from "./Sensors/4.2.0/Vibration";
+import { FrequencyBoundariesError, FrequencyRangeError, InvalidValue, PeakRangeError, PresetRangeError, TimeOutOfRangeError, UnkownCharacTypeError, WindowingFunctionError, WindowRangeError } from "./Exceptions";
+import { assert_range_inclusive, displayUint8ArrayAsHex, floatToByteArray, insertValueInByte, is_in_byte_range, is_in_range_inclusive, numberToByteArray, toByteArray, uint8ArrayToBase64 } from "./Helper";
 import { CharacTypeVib4_1_4 } from "./Sensors/4.1.4/Vibration";
-import { Characteristic, CharacTypeCommon, FirmwareCharacs, FirmwareSupportMap, FirmwareSupportMapType, FirmwareVersion, MultiFramePayload, Operation, UserPayloadType } from "./Sensors/Common";
-import { CharacTypeMP, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdLevelType } from "./Sensors/MP";
-import { CharacTypeSP } from "./Sensors/SP";
+import { CharacTypeCommon_3_5_0 } from "./Sensors/3.5.0/Common";
+import { CharacTypeMP_4_1_3, MultipointThresholdCommModeType, MultipointThresholdConfigType, MultipointThresholdLevelType } from "./Sensors/4.1.3/MP";
+import { CharacTypeSP_3_5_0 } from "./Sensors/3.5.0/SP";
+import { CharacTypeGen_5_2 } from "./Sensors/5.2/Generic";
+import { CharacTypeSP_5_2 } from "./Sensors/5.2/Singlepoint";
+import { CONFIG } from "./Config";
+import { FirmwareVersion, FirmwareSupportMapType, FirmwareCharacs, FirmwareSupportMap, MultiFramePayload, UserPayloadType, Characteristic, Operation } from "./Sensors/Mapping";
+import { CharacTypeVib_5_2, MultipointThresholdPresetChangeType, MultipointThresholdConfigType as MultipointThresholdConfigType_5_2, MultipointThresholdLevelType as MultipointThresholdLevelType_5_2, MultipointThresholdCommModeType as MultipointThresholdCommModeType_5_2 } from "./Sensors/5.2/Vibration";
 
 
 
@@ -195,25 +199,55 @@ export function encode_multi_frame(charac: Characteristic, operationChosen: Oper
   const frame_array: Frame[] = []
 
   switch (userPayload.type) {
-    case (CharacTypeMP.MULTIPOINT_THRESHOLD_MULTI):
+    case (CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD_MULTI): {
       // Shallow copy to avoid modifying by reference the object
       const _charac = { ...charac }
-      _charac.type = CharacTypeMP.MULTIPOINT_THRESHOLD
+      _charac.type = CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD
 
       // Level
-      const payload_level: MultipointThresholdLevelType = { ...userPayload, level: userPayload.level, param_sel: "ths_level", type: CharacTypeMP.MULTIPOINT_THRESHOLD }
+      const payload_level: MultipointThresholdLevelType = { ...userPayload, level: userPayload.level, param_sel: "ths_level", type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD }
       frame_array.push(encode(_charac, operationChosen, payload_level))
 
       // Comm mode, only if LoRa bit is set
       if (userPayload.set_lora_mode || userPayload.set_ble_mode) {
-        const payload_comm: MultipointThresholdCommModeType = { ...userPayload, param_sel: "communication_mode", type: CharacTypeMP.MULTIPOINT_THRESHOLD }
+        const payload_comm: MultipointThresholdCommModeType = { ...userPayload, param_sel: "communication_mode", type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD }
         frame_array.push(encode(_charac, operationChosen, payload_comm))
       }
 
       // Conf        
-      const payload_conf: MultipointThresholdConfigType = { ...userPayload, param_sel: "ths_config", type: CharacTypeMP.MULTIPOINT_THRESHOLD }
+      const payload_conf: MultipointThresholdConfigType = { ...userPayload, param_sel: "ths_config", type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD }
       frame_array.push(encode(_charac, operationChosen, payload_conf))
       break;
+
+    }
+    case (CharacTypeVib_5_2.MULTIPOINT_THRESHOLD_MULTI): {
+      // Shallow copy to avoid modifying by reference the object
+      const _charac = { ...charac }
+      _charac.type = CharacTypeVib_5_2.MULTIPOINT_THRESHOLD
+
+      // Level
+      const payload_level: MultipointThresholdLevelType_5_2 = { ...userPayload, level: userPayload.level, param_sel: "ths_level", type: CharacTypeVib_5_2.MULTIPOINT_THRESHOLD }
+      frame_array.push(encode(_charac, operationChosen, payload_level))
+
+      // Comm mode, only if LoRa bit is set
+      if (userPayload.set_lora_mode || userPayload.set_ble_mode) {
+        const payload_comm: MultipointThresholdCommModeType_5_2 = { ...userPayload, param_sel: "communication_mode", type: CharacTypeVib_5_2.MULTIPOINT_THRESHOLD }
+        frame_array.push(encode(_charac, operationChosen, payload_comm))
+      }
+
+      // Conf        
+      const payload_conf: MultipointThresholdConfigType_5_2 = { ...userPayload, param_sel: "ths_config", type: CharacTypeVib_5_2.MULTIPOINT_THRESHOLD }
+      frame_array.push(encode(_charac, operationChosen, payload_conf))
+
+      // Preset change
+      if (userPayload.change_preset) {
+        const payload_preset: MultipointThresholdPresetChangeType = { ...userPayload, param_sel: "preset_change", type: CharacTypeVib_5_2.MULTIPOINT_THRESHOLD }
+        frame_array.push(encode(_charac, operationChosen, payload_preset))
+      }
+      break;
+    }
+
+
   }
 
   return frame_array
@@ -231,51 +265,61 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
 
 
   switch (user_payload.type) {
-    case (CharacTypeCommon.THRESHOLD):
+    case (CharacTypeCommon_3_5_0.BLE_ACTIVATION):
+      encoded_input[0] = user_payload.checked ? 1 : 0;
+      break;
+    case (CharacTypeCommon_3_5_0.BATTERY):
+      encoded_input[0] = user_payload.reset ? 0xFF : 0;
+      break;
+    case (CharacTypeCommon_3_5_0.KEEPALIVE):
+      encoded_input[0] = insertValueInByte(encoded_input[0], parseInt(user_payload.keepaliveInterval), 0)
+      encoded_input[0] = insertValueInByte(encoded_input[0], parseInt(user_payload.keepaliveMode), 3)
+      break;
+    case (CharacTypeCommon_3_5_0.LORA_MODE):
+      let value = user_payload.mode
+      switch (user_payload.mode) {
+        case "on_measurement":
+          encoded_input[0] = 0
+          break;
+        case "silent":
+          encoded_input[0] = 1
+          break;
+        default:
+          throw new InvalidValue(charac.charac_name, value)
+          break;
+      }
+      break;
+    case (CharacTypeCommon_3_5_0.LORA_PERCENTAGE):
+      encoded_input[0] = user_payload.percentage
+      break;
+    case (CharacTypeCommon_3_5_0.TRIGGER_MEASUREMENT):
+      encoded_input[0] = user_payload.disconnect ? 0x81 : 0x01
+      break;
+
+    // SINGLEPOINT
+    case (CharacTypeSP_3_5_0.THRESHOLD):
       encoded_input[0] = parseInt(user_payload.id_data, 16)
       encoded_input[1] = parseInt(user_payload.param_sel, 16)
       bytesArray = toByteArray(user_payload.data32, 4)
       encoded_input.set(bytesArray, 2)
       break;
-    case (CharacTypeCommon.BLE_ACTIVATION):
-      encoded_input[0] = user_payload.checked ? 1 : 0;
-      break;
-    case (CharacTypeCommon.BATTERY):
-      encoded_input[0] = user_payload.reset ? 0xFF : 0;
-      break;
-    case (CharacTypeCommon.KEEPALIVE):
-      encoded_input[0] = insertValueInByte(encoded_input[0], parseInt(user_payload.keepaliveInterval), 0)
-      encoded_input[0] = insertValueInByte(encoded_input[0], parseInt(user_payload.keepaliveMode), 3)
-      break;
-    case (CharacTypeCommon.LORA_MODE):
-      encoded_input[0] = user_payload.mode
-      break;
-    case (CharacTypeCommon.LORA_PERCENTAGE):
-      encoded_input[0] = user_payload.percentage
-      break;
-    case (CharacTypeCommon.TRIGGER_MEASUREMENT):
-      encoded_input[0] = user_payload.disconnect ? 0x81 : 0x01
-      break;
-
-    // SINGLEPOINT
-
-    case (CharacTypeSP.MEAS_INTERVAL):
+    case (CharacTypeSP_3_5_0.MEAS_INTERVAL):
       encoded_input[0] = parseInt(user_payload.hour, 10) //Hour
       encoded_input[1] = parseInt(user_payload.minute, 10) //Minute
       encoded_input[2] = parseInt(user_payload.second, 10) //Second
       break;
-    case (CharacTypeSP.DATALOG_DATA):
+    case (CharacTypeSP_3_5_0.DATALOG_DATA):
       encoded_input[0] = user_payload.datalog_type
       encoded_input.set(numberToByteArray(user_payload.index, 2), 1)
       encoded_input[3] = user_payload.length
       break;
-    case (CharacTypeSP.DATALOG_ANALYSIS):
+    case (CharacTypeSP_3_5_0.DATALOG_ANALYSIS):
       encoded_input[0] = 0x02 // check spec, always 2
       encoded_input.set(numberToByteArray(user_payload.length, 2), 1)
       break;
 
     // MULTIPOINT
-    case (CharacTypeMP.AXIS_SELECTION):
+    case (CharacTypeMP_4_1_3.AXIS_SELECTION):
       if (user_payload.axis_selected.includes("x"))
         encoded_input[0] = encoded_input[0] | 0x04
       if (user_payload.axis_selected.includes("y"))
@@ -283,7 +327,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       if (user_payload.axis_selected.includes("z"))
         encoded_input[0] = encoded_input[0] | 0x01
       break;
-    case (CharacTypeMP.PRESET_SELECTION):
+    case (CharacTypeMP_4_1_3.PRESET_SELECTION):
 
       encoded_input[0] = user_payload.main_preset
       if (!is_in_byte_range(user_payload.main_preset))
@@ -295,7 +339,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
 
 
       break;
-    case (CharacTypeMP.WINDOWING_FUNCTION):
+    case (CharacTypeMP_4_1_3.WINDOWING_FUNCTION):
       if (user_payload.function == "none")
         encoded_input[0] = 0x00
       else if (user_payload.function == "hann")
@@ -305,7 +349,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       else
         throw new WindowingFunctionError()
       break;
-    case (CharacTypeMP.PRESET_CONFIGURATION):
+    case (CharacTypeMP_4_1_3.PRESET_CONFIGURATION):
       if (!is_in_byte_range(user_payload.meas_interval_hour))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
@@ -327,12 +371,12 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       encoded_input[5] = user_payload.meas_interval_second
 
       break;
-    case (CharacTypeMP.PRESET_REQUEST):
+    case (CharacTypeMP_4_1_3.PRESET_REQUEST):
       if (!is_in_byte_range(user_payload.preset_id))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
       break;
-    case (CharacTypeMP.WINDOW_CONFIGURATION):
+    case (CharacTypeMP_4_1_3.WINDOW_CONFIGURATION):
       if (!is_in_byte_range(user_payload.preset_id))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
@@ -357,7 +401,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       encoded_input.set(numberToByteArray(user_payload.frequency_min, 2), 4)
       encoded_input.set(numberToByteArray(user_payload.frequency_max, 2), 6)
       break;
-    case (CharacTypeMP.WINDOW_REQUEST):
+    case (CharacTypeMP_4_1_3.WINDOW_REQUEST):
       if (!is_in_byte_range(user_payload.preset_id))
         throw new PresetRangeError()
       encoded_input[0] = user_payload.preset_id
@@ -366,7 +410,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
         throw new WindowRangeError()
       encoded_input[1] = user_payload.window_id
       break;
-    case (CharacTypeMP.MULTIPOINT_THRESHOLD):
+    case (CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD):
       // ID_DATA(1) | PARAM_SEL(1) | DATA32(4)
       encoded_input[0] = user_payload.id_data
 
@@ -413,7 +457,7 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
         }
       }
       break;
-    case (CharacTypeMP.MULTIPOINT_THRESHOLD_REQUEST):
+    case (CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD_REQUEST):
       encoded_input[0] = user_payload.id_data
       switch (user_payload.param_sel) {
         case "ths_config":
@@ -427,12 +471,6 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
           break;
       }
       break;
-
-    // VIB 4.2.0
-    case (CharacTypeVib4_2.PROTOCOL_VERSION):
-      encoded_input[0] = user_payload.version
-      break;
-
 
     // Vib 4.1_4
     case (CharacTypeVib4_1_4.RAW_TIME_DATA):
@@ -451,7 +489,113 @@ function payloadFormatter(charac: Characteristic, user_payload: UserPayloadType)
       encoded_input[3] = user_payload.length
       break;
 
+    // Generic 5.2
+    case (CharacTypeGen_5_2.PROTOCOL_VERSION):
+      encoded_input[0] = user_payload.version
+      break;
 
+    case (CharacTypeGen_5_2.NETWORK_LOST_CONFIG):
+      assert_range_inclusive(CONFIG.network_lost_config.adr_ack_limit_min, CONFIG.network_lost_config.adr_ack_limit_max, user_payload.adr_ack_limit)
+      encoded_input[0] = user_payload.adr_ack_limit
+
+      assert_range_inclusive(CONFIG.network_lost_config.adr_ack_delay_min, CONFIG.network_lost_config.adr_ack_delay_max, user_payload.adr_ack_delay)
+      encoded_input[1] = user_payload.adr_ack_delay
+
+      assert_range_inclusive(CONFIG.network_lost_config.confirmed_nack_retry_min, CONFIG.network_lost_config.confirmed_nack_retry_max, user_payload.confirmed_nack_retry)
+      encoded_input[2] = user_payload.confirmed_nack_retry
+
+      assert_range_inclusive(CONFIG.network_lost_config.periodic_unjoin_delay_min, CONFIG.network_lost_config.periodic_unjoin_delay_max, user_payload.periodic_unjoin_delay)
+      encoded_input.set(numberToByteArray(user_payload.periodic_unjoin_delay, 2), 3)
+      break;
+
+    // SP 5.2
+
+    case (CharacTypeSP_5_2.LORA_MODE):
+      switch (user_payload.mode) {
+        case "on_measurement":
+          encoded_input[0] = 0
+          break;
+        case "silent":
+          encoded_input[0] = 1
+          break;
+        case "merged":
+          encoded_input[0] = 2
+          break;
+        default:
+          break;
+      }
+      break;
+
+    case (CharacTypeSP_5_2.MERGE_MEASUREMENT):
+
+      assert_range_inclusive(CONFIG.merged_mode.meas_number_min, CONFIG.merged_mode.meas_number_max, user_payload.measurement_number)
+      encoded_input[0] = user_payload.measurement_number
+
+      encoded_input[1] = 0x00
+      if (user_payload.measurement_counter)
+        encoded_input[1] |= 0x01
+      if (user_payload.timestamp)
+        encoded_input[1] |= 0x02
+      if (user_payload.secondary_temperature)
+        encoded_input[1] |= 0x04
+
+      break;
+
+
+    // Vib 5.2
+
+    case (CharacTypeVib_5_2.MULTIPOINT_THRESHOLD):
+      // ID_DATA(1) | PARAM_SEL(1) | DATA32(4)
+      encoded_input[0] = user_payload.id_data
+
+      if (user_payload.param_sel === "ths_config") {
+        encoded_input[1] = 0x00
+
+        if (user_payload.event_flag)
+          encoded_input[2] |= 0x80
+        if (user_payload.enabled)
+          encoded_input[2] |= 0x40
+        if (user_payload.direction == "above")
+          encoded_input[2] |= 0x20
+        if (user_payload.auto_clear)
+          encoded_input[2] |= 0x10
+        if (user_payload.set_ble_mode)
+          encoded_input[2] |= 0x04
+        if (user_payload.set_lora_mode)
+          encoded_input[2] |= 0x02
+      }
+      else if (user_payload.param_sel === "ths_level") {
+        encoded_input[1] = 0x01
+        encoded_input.set(floatToByteArray(user_payload.level), 2)
+      }
+      else if (user_payload.param_sel === "communication_mode") {
+        encoded_input[1] = 0x03
+        switch (user_payload.ble_mode) {
+          case "burst+periodic":
+            encoded_input[2] = 0x00
+            break;
+          case "burst":
+            encoded_input[2] = 0x01
+            break;
+          case "silent":
+            encoded_input[2] = 0x02
+            break;
+          case "periodic":
+            encoded_input[2] = 0x03
+            break;
+        }
+        switch (user_payload.lora_mode) {
+          case "on_measurement":
+            encoded_input[3] = 0x00
+            break;
+        }
+      }
+      else if (user_payload.param_sel === "preset_change") {
+        encoded_input[1] = 0x04
+        encoded_input[2] = user_payload.preset_id_slot0
+        encoded_input[3] = user_payload.preset_id_slot1
+      }
+      break;
 
     default:
       throw new UnkownCharacTypeError()

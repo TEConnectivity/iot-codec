@@ -46,3 +46,10 @@ export class FrequencyRangeError extends Error {
         super("Frequency should be between 0 and 20800 Hz.");
     }
 }
+
+export class InvalidValue extends Error {
+    constructor(char_name: string, value: any) {
+        super(`${char_name} does not accept this value : ${value}. Check the schemas for this FW version.`);
+    }
+}
+

@@ -1,6 +1,6 @@
-import { Characteristic } from "./Common"
+import { Characteristic } from "../Mapping"
 
-export enum CharacTypeMP {
+export enum CharacTypeMP_4_1_3 {
 
     // MP
     AXIS_SELECTION = "axis_selection",
@@ -19,7 +19,7 @@ export enum CharacTypeMP {
 
 
 export interface AxisSelectionType {
-    type: CharacTypeMP.AXIS_SELECTION
+    type: CharacTypeMP_4_1_3.AXIS_SELECTION
     axis_selected: ("x" | "y" | "z")[]
 }
 
@@ -27,13 +27,13 @@ export interface AxisSelectionType {
  * If secondary_preset is present, rotating mode will be enabled
  */
 export interface PresetSelectionType {
-    type: CharacTypeMP.PRESET_SELECTION
+    type: CharacTypeMP_4_1_3.PRESET_SELECTION
     main_preset: number,
     secondary_preset?: number
 }
 
 export interface WindowingFunctionType {
-    type: CharacTypeMP.WINDOWING_FUNCTION
+    type: CharacTypeMP_4_1_3.WINDOWING_FUNCTION
     function: "hann" | "flattop" | "none"
 }
 
@@ -42,7 +42,7 @@ export interface WindowingFunctionType {
  * This frame configure a preset.
  */
 export interface PresetConfigurationType {
-    type: CharacTypeMP.PRESET_CONFIGURATION
+    type: CharacTypeMP_4_1_3.PRESET_CONFIGURATION
     preset_id: number,
     frame_format: 0 | 1 | 2,
     bandwidth_mode: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12,
@@ -55,13 +55,13 @@ export interface PresetConfigurationType {
  * Send this frame to request the configuration of a given preset.
  */
 export interface PresetRequestType {
-    type: CharacTypeMP.PRESET_REQUEST
+    type: CharacTypeMP_4_1_3.PRESET_REQUEST
     preset_id: number,
 }
 
 
 export interface WindowConfigurationType {
-    type: CharacTypeMP.WINDOW_CONFIGURATION
+    type: CharacTypeMP_4_1_3.WINDOW_CONFIGURATION
     preset_id: number,
     window_id: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8,
     enable: boolean,
@@ -80,7 +80,7 @@ export interface WindowConfigurationType {
 }
 
 export interface WindowRequestType {
-    type: CharacTypeMP.WINDOW_REQUEST
+    type: CharacTypeMP_4_1_3.WINDOW_REQUEST
     preset_id: number,
     window_id: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 }
@@ -89,7 +89,7 @@ export interface WindowRequestType {
  * Threshold is a highly dynamic frame. Refer to documentation for more info.
  */
 interface MultipointThreshold {
-    type: CharacTypeMP.MULTIPOINT_THRESHOLD
+    type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD
     id_data: Multipoint_Threshold_ID_DATA
 }
 
@@ -120,7 +120,7 @@ export interface MultipointThresholdCommModeType extends MultipointThreshold {
 }
 
 export interface MultipointThresholdRequestType {
-    type: CharacTypeMP.MULTIPOINT_THRESHOLD_REQUEST
+    type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD_REQUEST
     id_data: Multipoint_Threshold_ID_DATA
     param_sel: "ths_config" | "ths_level" | "communication_mode"
 }
@@ -131,7 +131,7 @@ export interface MultipointThresholdRequestType {
  * Several optional field depending on what's needed
  */
 export interface MultipointThresholdHL {
-    type: CharacTypeMP.MULTIPOINT_THRESHOLD_MULTI
+    type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD_MULTI
     multi_frame: true
     id_data: Multipoint_Threshold_ID_DATA
 
@@ -154,7 +154,7 @@ export interface MultipointThresholdHL {
 
 
 
-export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
+export const Charac_DB_MP: Record<CharacTypeMP_4_1_3, Characteristic> = {
     // MULTIPOINT
     axis_selection: {
         uuid: "FA01",
@@ -162,7 +162,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "1",
         ble: "r|w",
         lora: "r|w|wr",
-        type: CharacTypeMP.AXIS_SELECTION
+        type: CharacTypeMP_4_1_3.AXIS_SELECTION
     },
     preset_selection: {
         uuid: "FA02",
@@ -170,7 +170,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "2",
         ble: "r|w",
         lora: "r|w|wr",
-        type: CharacTypeMP.PRESET_SELECTION
+        type: CharacTypeMP_4_1_3.PRESET_SELECTION
     },
     windowing_function: {
         uuid: "FA03",
@@ -178,7 +178,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "1",
         ble: "r|w",
         lora: "r|w|wr",
-        type: CharacTypeMP.WINDOWING_FUNCTION
+        type: CharacTypeMP_4_1_3.WINDOWING_FUNCTION
     },
     preset_configuration: {
         uuid: "FA10",
@@ -186,7 +186,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "6",
         ble: "r|w",
         lora: "r|w|wr",
-        type: CharacTypeMP.PRESET_CONFIGURATION
+        type: CharacTypeMP_4_1_3.PRESET_CONFIGURATION
     },
     preset_request: {
         uuid: "FA10",
@@ -194,7 +194,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "1",
         ble: "r|w",
         lora: "wr",
-        type: CharacTypeMP.PRESET_REQUEST
+        type: CharacTypeMP_4_1_3.PRESET_REQUEST
     },
     window_configuration: {
         uuid: "FA11",
@@ -202,7 +202,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "8",
         ble: "r|w",
         lora: "r|w|wr",
-        type: CharacTypeMP.WINDOW_CONFIGURATION
+        type: CharacTypeMP_4_1_3.WINDOW_CONFIGURATION
     },
     window_request: {
         uuid: "FA11",
@@ -210,7 +210,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "2",
         ble: "r|w",
         lora: "wr",
-        type: CharacTypeMP.WINDOW_REQUEST
+        type: CharacTypeMP_4_1_3.WINDOW_REQUEST
     },
     multipoint_threshold: {
         uuid: "B201",
@@ -218,7 +218,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "6",
         ble: "r|w|n",
         lora: "w|wr",
-        type: CharacTypeMP.MULTIPOINT_THRESHOLD
+        type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD
     },
     multipoint_threshold_request: {
         uuid: "B201",
@@ -226,7 +226,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "2",
         ble: "r|w|n",
         lora: "w|wr",
-        type: CharacTypeMP.MULTIPOINT_THRESHOLD_REQUEST
+        type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD_REQUEST
     },
     multipoint_threshold_multi: {
         uuid: "B201",
@@ -234,7 +234,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "6",
         ble: "r|w|n",
         lora: "w|wr",
-        type: CharacTypeMP.MULTIPOINT_THRESHOLD_MULTI
+        type: CharacTypeMP_4_1_3.MULTIPOINT_THRESHOLD_MULTI
     },
     meas_interval: {
         uuid: "B302",
@@ -242,7 +242,7 @@ export const Charac_DB_MP: Record<CharacTypeMP, Characteristic> = {
         payload_size: "3",
         ble: "r",
         lora: "r",
-        type: CharacTypeMP.MEAS_INTERVAL
+        type: CharacTypeMP_4_1_3.MEAS_INTERVAL
     },
 
 };
