@@ -86,10 +86,8 @@ NPM scripts :
 - `npm run build` : build the project
 - `npm run start` : watch the project (build on file change)
 - `npm run size` : estimate size of project
-- `npm run example` : run the examples present in index.ts
 - `npm run test` : run the tests files
 - `npm run test:watch` : run the tests files in watch mode
-
 
 Typical usage to publish NPM package: 
 
@@ -105,6 +103,6 @@ Typical usage to develop with the module :
 - `npm link`
 - `npm run build`
 - On the target repo :
-  - `npm uninstall <iot-codec : version>`
-  - `npm link <iot-codec : version>`
+  - `npm uninstall @te-connectivity/iot-codec`
+  - `npm link @te-connectivity/iot-codec@<version>`
 
